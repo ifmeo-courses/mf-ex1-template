@@ -1,0 +1,9 @@
+matplotlib
+numpy
+xarray
+gsw
+seasenselib
+jupyterlab
+ipywidgets
+pytest
+ipykernel

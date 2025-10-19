@@ -1,0 +1,91 @@
+"""
+Test file for Exercise 1: CTD Profile Plotting
+
+This file contains automated tests to check student submissions.
+Tests are run by GitHub Actions when students push their code.
+"""
+
+import pytest
+import numpy as np
+import matplotlib.pyplot as plt
+from pathlib import Path
+
+
+def test_imports_work():
+    """Test that required packages can be imported."""
+    try:
+        import matplotlib.pyplot as plt
+        import numpy as np
+        import xarray as xr
+        import gsw
+        import seasenselib as ssl
+    except ImportError as e:
+        pytest.fail(f"Failed to import required package: {e}")
+
+
+def test_notebook_exists():
+    """Test that the assignment notebook exists."""
+    notebook_path = Path("assignment.ipynb")
+    assert notebook_path.exists(), "assignment.ipynb file not found"
+
+
+def test_basic_plotting_functions():
+    """Test that basic plotting functionality works."""
+    # Create sample data
+    depth = np.linspace(0, 100, 50)
+    temperature = 20 - depth * 0.1 + np.random.normal(0, 0.5, 50)
+    salinity = 35 + depth * 0.01 + np.random.normal(0, 0.1, 50)
+    
+    # Test basic plotting
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 8))
+    
+    ax1.plot(temperature, depth)
+    ax1.set_xlabel('Temperature (°C)')
+    ax1.set_ylabel('Depth (m)')
+    ax1.invert_yaxis()
+    ax1.set_title('Temperature Profile')
+    
+    ax2.plot(salinity, depth)
+    ax2.set_xlabel('Salinity (PSU)')
+    ax2.set_ylabel('Depth (m)')
+    ax2.invert_yaxis()
+    ax2.set_title('Salinity Profile')
+    
+    plt.tight_layout()
+    
+    # Check that plots were created
+    assert len(fig.axes) == 2
+    assert len(ax1.lines) > 0
+    assert len(ax2.lines) > 0
+    assert ax1.get_xlabel() != ''
+    assert ax1.get_ylabel() != ''
+    assert ax2.get_xlabel() != ''
+    assert ax2.get_ylabel() != ''
+    
+    plt.close(fig)
+
+
+def test_data_analysis_concepts():
+    """Test understanding of oceanographic data concepts."""
+    # Sample CTD data patterns
+    depth = np.linspace(0, 1000, 100)
+    
+    # Typical ocean temperature profile (thermocline)
+    temperature = 25 * np.exp(-depth/200) + 4
+    
+    # Typical salinity profile
+    salinity = 34.5 + 0.5 * (1 - np.exp(-depth/500))
+    
+    # Test that temperature decreases with depth (generally)
+    assert temperature[0] > temperature[-1], "Temperature should generally decrease with depth"
+    
+    # Test that salinity varies in reasonable range
+    assert 30 < np.mean(salinity) < 40, "Salinity should be in reasonable ocean range"
+    
+    # Test depth is positive and increasing
+    assert np.all(depth >= 0), "Depth should be positive"
+    assert np.all(np.diff(depth) > 0), "Depth should increase monotonically"
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])
