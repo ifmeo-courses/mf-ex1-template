@@ -18,15 +18,16 @@ def test_imports_work():
         import numpy as np
         import xarray as xr
         import gsw
-        import seasenselib as ssl
+        from seasenselib.readers import SbeCnvReader, NetCdfReader
+        from seasenselib.writers import NetCdfWriter
     except ImportError as e:
         pytest.fail(f"Failed to import required package: {e}")
 
 
 def test_notebook_exists():
     """Test that the assignment notebook exists."""
-    notebook_path = Path("assignment.ipynb")
-    assert notebook_path.exists(), "assignment.ipynb file not found"
+    notebook_path = Path("src/assignment.ipynb")
+    assert notebook_path.exists(), "src/assignment.ipynb file not found"
 
 
 def test_basic_plotting_functions():
