@@ -3,6 +3,9 @@ Test file for Exercise 1: CTD Profile Plotting
 
 This file contains automated tests to check student submissions.
 Tests are run by GitHub Actions when students push their code.
+
+IMPORTANT: This file tests the basic environment setup.
+For detailed completion checking, see test_completion.py
 """
 
 import pytest
@@ -28,6 +31,12 @@ def test_notebook_exists():
     """Test that the assignment notebook exists."""
     notebook_path = Path("src/assignment.ipynb")
     assert notebook_path.exists(), "src/assignment.ipynb file not found"
+
+
+def test_data_file_exists():
+    """Test that the required CTD data file exists."""
+    data_file = Path("data/MSM121_054_1db.cnv")
+    assert data_file.exists(), "Required CTD data file (MSM121_054_1db.cnv) not found"
 
 
 def test_basic_plotting_functions():
