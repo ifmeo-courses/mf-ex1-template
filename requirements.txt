@@ -3,7 +3,7 @@ numpy
 xarray
 gsw
 seasenselib
-jupyterlab
-ipywidgets
 pytest
 ipykernel
+nbformat
+nbconvert
