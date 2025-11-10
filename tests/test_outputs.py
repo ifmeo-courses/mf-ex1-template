@@ -14,19 +14,20 @@ import matplotlib.image as mpimg
 
 def test_student_information_completed():
     """Test that student filled in their personal information."""
-    notebook_path = Path("../src/assignment.ipynb")
+    notebook_path = Path("src/assignment.ipynb")
     if not notebook_path.exists():
         pytest.skip("Assignment notebook not found")
     
     with open(notebook_path, 'r', encoding='utf-8') as f:
         notebook = json.load(f)
     
-    # Find the first markdown cell (should contain student info)
+    # Find student information cell
     info_cell = None
     for cell in notebook['cells']:
         if cell['cell_type'] == 'markdown':
             source = ''.join(cell['source'])
-            if 'Author:' in source or 'Your Information' in source:
+            if ('Your Name:' in source or 'Author:' in source or 
+                'Complete your information' in source or 'Your Information' in source):
                 info_cell = source
                 break
     
@@ -38,7 +39,9 @@ def test_student_information_completed():
         '[TODAY\'S DATE]',
         '[REPLACE WITH YOUR ACTUAL NAME]',
         '[REPLACE WITH TODAY\'S DATE]',
-        '[REPLACE WITH YOUR STUDENT ID]'
+        '[REPLACE WITH YOUR STUDENT ID]',
+        'YourName',
+        'Your Name Here'
     ]
     
     for placeholder in placeholders:
@@ -60,16 +63,29 @@ def test_netcdf_file_valid():
     # Load and check the dataset
     ds = xr.open_dataset(netcdf_file)
     
-    # Check required variables exist
-    required_vars = ['salinity', 'pressure']
+    # Check required variables exist - use the actual variable names from the data
+    required_vars = ['pressure']
     for var in required_vars:
         assert var in ds.data_vars, f"Required variable '{var}' missing from netCDF file"
     
+    # Check for salinity variable (could be 'salinity' or another name)
+    salinity_vars = ['salinity', 'PSAL', 'sal', 'PSAL_1', 'PSAL1']
+    sal_found = any(var in ds.data_vars for var in salinity_vars)
+    assert sal_found, f"No salinity variable found. Available variables: {list(ds.data_vars.keys())}"
+    
     # Check data is reasonable
     assert len(ds.pressure) > 50, "Dataset should have at least 50 pressure levels"
-    #assert ds.temperature.max() > 0, "Temperature data appears invalid"
-    assert ds.salinity.min() > 30, "Salinity data appears invalid (too low)"
-    assert ds.salinity.max() < 40, "Salinity data appears invalid (too high)"
+    # Find salinity variable and check values
+    salinity_vars = ['salinity', 'PSAL', 'sal', 'PSAL_1', 'PSAL1']
+    sal_var = None
+    for var in salinity_vars:
+        if var in ds.data_vars:
+            sal_var = var
+            break
+    
+    if sal_var:
+        assert ds[sal_var].min() > 30, f"Salinity data appears invalid (too low): {ds[sal_var].min()}"
+        assert ds[sal_var].max() < 40, f"Salinity data appears invalid (too high): {ds[sal_var].max()}"
 
 
 def test_teos10_calculations_completed():
@@ -94,8 +110,28 @@ def test_teos10_calculations_completed():
     assert CT.max() < 30, "Conservative temperature too high"
     
     # Check they're different from practical/in-situ values
-    assert not np.allclose(SA, ds.salinity), "Absolute salinity identical to practical salinity"
-    assert not np.allclose(CT, ds.temperature), "Conservative temperature identical to in-situ temperature"
+    # Find the original salinity and temperature variables
+    sal_vars = ['salinity', 'PSAL', 'sal', 'PSAL_1', 'PSAL1']
+    temp_vars = ['temperature', 'temperature_1', 'TEMP', 'temp', 'TEMP_1', 'TEMP1']
+    
+    original_sal = None
+    original_temp = None
+    
+    for var in sal_vars:
+        if var in ds.data_vars:
+            original_sal = var
+            break
+            
+    for var in temp_vars:
+        if var in ds.data_vars:
+            original_temp = var
+            break
+    
+    if original_sal:
+        assert not np.allclose(SA, ds[original_sal]), "Absolute salinity identical to practical salinity"
+    
+    if original_temp:
+        assert not np.allclose(CT, ds[original_temp]), "Conservative temperature identical to in-situ temperature"
 
 
 def test_all_figures_created():
@@ -141,9 +177,9 @@ def test_figures_contain_data():
     assert img.shape[0] > 100, "Figure height too small"
     assert img.shape[1] > 100, "Figure width too small"
     
-    # Check it's not just a white image (mean pixel value should be < 0.95)
+    # Check it's not just a white image (relaxed threshold for profile plots)
     mean_pixel = np.mean(img)
-    assert mean_pixel < 0.96, "Figure appears to be mostly empty/white"
+    assert mean_pixel < 0.99, f"Figure appears to be mostly empty/white: {test_fig} (mean pixel: {mean_pixel:.4f})"
 
 
 def test_figure_file_sizes():

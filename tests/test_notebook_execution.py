@@ -18,7 +18,7 @@ import shutil
 
 def test_notebook_executes_without_errors():
     """Test that the assignment notebook runs completely without errors."""
-    notebook_path = Path("../src/assignment.ipynb")
+    notebook_path = Path("src/assignment.ipynb")
     assert notebook_path.exists(), "Assignment notebook not found"
     
     # Load the notebook
@@ -35,7 +35,7 @@ def test_notebook_executes_without_errors():
             nbformat.write(nb, f)
         
         # Copy required data files
-        data_src = Path("../data")
+        data_src = Path("data")
         if data_src.exists():
             data_dst = temp_path / "data" 
             shutil.copytree(data_src, data_dst)
@@ -56,7 +56,7 @@ def test_notebook_executes_without_errors():
 
 def test_notebook_creates_required_variables():
     """Test that the notebook creates the required variables and functions."""
-    notebook_path = Path("../src/assignment.ipynb")
+    notebook_path = Path("src/assignment.ipynb")
     if not notebook_path.exists():
         pytest.skip("Assignment notebook not found")
     
@@ -73,7 +73,7 @@ def test_notebook_creates_required_variables():
             nbformat.write(nb, f)
         
         # Copy data files
-        data_src = Path("../data")
+        data_src = Path("data")
         if data_src.exists():
             shutil.copytree(data_src, temp_path / "data")
         
@@ -106,7 +106,7 @@ def test_notebook_creates_required_variables():
 
 def test_notebook_removes_notimplementederror():
     """Test that student removed all NotImplementedError statements."""
-    notebook_path = Path("../src/assignment.ipynb")
+    notebook_path = Path("src/assignment.ipynb")
     if not notebook_path.exists():
         pytest.skip("Assignment notebook not found")
     
