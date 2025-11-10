@@ -29,26 +29,30 @@ def test_notebook_executes_without_errors():
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
         
-        # Copy notebook to temp directory
-        temp_notebook = temp_path / "assignment.ipynb"
+        # Create proper directory structure: temp_dir/src/ and temp_dir/data/
+        src_dir = temp_path / "src"
+        src_dir.mkdir()
+        
+        # Copy notebook to src subdirectory (where it expects to be)
+        temp_notebook = src_dir / "assignment.ipynb"
         with open(temp_notebook, 'w') as f:
             nbformat.write(nb, f)
         
-        # Copy required data files
+        # Copy required data files to temp_dir/data/ (so ../data/ from src/ works)
         data_src = Path("data")
         if data_src.exists():
             data_dst = temp_path / "data" 
             shutil.copytree(data_src, data_dst)
         
-        # Create figures directory
+        # Create figures directory at temp_dir/figures/ (so ../figures/ from src/ works)
         figures_dir = temp_path / "figures"
         figures_dir.mkdir(exist_ok=True)
         
-        # Execute the notebook
+        # Execute the notebook from the src directory
         ep = ExecutePreprocessor(timeout=300, kernel_name='python3')
         
         try:
-            ep.preprocess(nb, {'metadata': {'path': str(temp_path)}})
+            ep.preprocess(nb, {'metadata': {'path': str(src_dir)}})
             print("✓ Notebook executed successfully")
         except Exception as e:
             pytest.fail(f"Notebook execution failed: {str(e)}")
@@ -67,8 +71,12 @@ def test_notebook_creates_required_variables():
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
         
+        # Create proper directory structure: temp_dir/src/ and temp_dir/data/
+        src_dir = temp_path / "src"
+        src_dir.mkdir()
+        
         # Setup temporary environment
-        temp_notebook = temp_path / "assignment.ipynb"
+        temp_notebook = src_dir / "assignment.ipynb"
         with open(temp_notebook, 'w') as f:
             nbformat.write(nb, f)
         
@@ -83,7 +91,7 @@ def test_notebook_creates_required_variables():
         ep = ExecutePreprocessor(timeout=300, kernel_name='python3')
         
         try:
-            ep.preprocess(nb, {'metadata': {'path': str(temp_path)}})
+            ep.preprocess(nb, {'metadata': {'path': str(src_dir)}})
             
             # Check that key variables were created by examining the executed cells
             executed_code = []
